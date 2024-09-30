@@ -39,6 +39,12 @@
         </div>
       </div>
       <div class="row">
+        <div>
+          <label for="rate" class="form-label">语速（默认0%）：</label>
+          <input name="rate" class="form-control" type="text" value="">
+        </div>
+      </div>
+      <div class="row">
         <div class="col">
           <label for="voiceFormat" class="form-label">音频格式：</label>
           <select name="voiceFormat" class="form-select">
@@ -252,6 +258,7 @@
       const format = document.getElementsByName('voiceFormat')[0].value;
       const voice = document.getElementsByName('voiceName')[0].value;
       const content = document.getElementsByName('previewText')[0].value;
+      const rate = document.getElementsByName('rate')[0].value;
 
       let button = document.getElementById('downloadButton');
       button.disabled = true;
@@ -266,7 +273,8 @@
         body: JSON.stringify({
           format: format,
           voice: voice,
-          content: content
+          content: content,
+          rate: rate
         })
       }).then(response => {
         if (response.status === 200) {
