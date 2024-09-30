@@ -36,12 +36,8 @@ module.exports = async (request: Request, response: Response) => {
   let json = {
     voice: '',
     content: '',
-    format: ''
-  }
-  try {
-    json = JSON.parse(request.body)
-  } catch {
-    throw `参数错误：${request.body}`
+    format: '',
+    ...request.body
   }
 
   try {
