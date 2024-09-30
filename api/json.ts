@@ -2,12 +2,12 @@ import { Request, Response } from 'express'
 import { retry } from '../retry'
 import { service, FORMAT_CONTENT_TYPE } from '../service/edge'
 
-function createSSML(text, voiceName) {
+function createSSML(text, voiceName, rate) {
   text = text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('\'', '&apos;').replaceAll('"', '&quot;');
   return '\
         <speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">\
           <voice name="'+ voiceName + '">\
-              <prosody rate="0%" pitch="0%">\
+              <prosody rate="' + (rate || '0%') + '" pitch="0%">\
                   '+ text + '\
               </prosody >\
           </voice >\
@@ -37,6 +37,7 @@ module.exports = async (request: Request, response: Response) => {
     voice: '',
     content: '',
     format: '',
+    rate: '',
     ...request.body
   }
 
@@ -48,7 +49,7 @@ module.exports = async (request: Request, response: Response) => {
       throw `无效的音频格式：${json.format}`
     }
 
-    const ssml = createSSML(json.content, json.voice)
+    const ssml = createSSML(json.content, json.voice, json.rate)
 
     let result = await retry(
         async () => {
