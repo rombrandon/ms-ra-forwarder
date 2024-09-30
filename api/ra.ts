@@ -24,6 +24,7 @@ module.exports = async (request: Request, response: Response) => {
     }
 
     let ssml = request.body
+    console.log(ssml)
     if (ssml == null) {
       throw `转换参数无效`
     }
@@ -38,6 +39,7 @@ module.exports = async (request: Request, response: Response) => {
       },
       '服务器多次尝试后转换失败',
     )
+    console.log(result)
     response.sendDate = true
     response
       .status(200)
