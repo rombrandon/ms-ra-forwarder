@@ -91,6 +91,7 @@
         <div class="row">
           <div class="col">
             <button id="previewButton" type="button" class="btn btn-secondary" onclick="preview()">测试</button>
+            <button id="downloadButton" type="button" class="btn btn-secondary" onclick="download()">下载</button>
             <button type="button" class="btn btn-primary" onclick='createLegadoUrl()'>生成阅读（legado）语音引擎链接</button>
           </div>
         </div>
@@ -175,6 +176,34 @@
       return ssml;
     }
 
+    function downloadByBlob (blob, format) {
+      // 根据格式确定文件后缀
+      let extension;
+      if (format.startsWith('raw-')) {
+        extension = 'raw';
+      } else if (format.startsWith('riff-')) {
+        extension = 'wav';
+      } else if (format.includes('-mp3')) {
+        extension = 'mp3';
+      } else if (format.startsWith('webm-')) {
+        extension = 'webm';
+      } else if (format.startsWith('ogg-')) {
+        extension = 'ogg';
+      } else {
+        // 默认后缀，以防有未知格式
+        extension = 'audio';
+      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'audio.' + extension;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }
+
     function preview() {
       let headers = { 'Content-Type': 'text/plain' };
       let voiceName = document.getElementsByName('voiceName')[0].value;
@@ -217,6 +246,45 @@
           button.disabled = false;
         });
     }
+
+    function download () {
+      const token = document.getElementsByName('token')[0].value;
+      const format = document.getElementsByName('voiceFormat')[0].value;
+      const voice = document.getElementsByName('voiceName')[0].value;
+      const content = document.getElementsByName('previewText')[0].value;
+
+      let button = document.getElementById('downloadButton');
+      button.disabled = true;
+      let ctx = new AudioContext();
+
+      fetch('/api/json', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token;
+        },
+        body: JSON.stringify({
+          format: format,
+          voice: voice,
+          content: content
+        })
+      }).then(response => {
+        if (response.status === 200) {
+          return response.blob()
+        } else if (response.status === 401) {
+          throw '无效的密钥';
+        } else {
+          return response.text().then(text => Promise.reject(text));
+        }
+      }).then(blob => downloadByBlob(blob, format))
+          .catch(reason => {
+            alert(reason);
+          })
+          .finally(() => {
+            button.disabled = false;
+          });
+    }
+
 
     function createLegadoUrl() {
       let name = document.getElementsByName('name')[0].value;
